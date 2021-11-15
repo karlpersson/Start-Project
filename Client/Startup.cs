@@ -40,6 +40,8 @@ namespace Client
 
             app.UseRouting();
 
+            app.UseRequestLocalization(new RequestLocalizationOptions().SetDefaultCulture("sv-SE"));
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
