@@ -43,6 +43,7 @@ namespace PaymentAPI
             else
             {
                 app.UseHsts();
+                app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseSerilogRequestLogging();
