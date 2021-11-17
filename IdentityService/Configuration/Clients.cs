@@ -98,7 +98,7 @@ namespace IdentityService.Configuration
 
                 RedirectUris =
                 {
-                    "https://https://student3-client.secure.nu/signin-oidc"
+                    "https://student3-client.secure.nu/signin-oidc"
                 },
 
                 PostLogoutRedirectUris =
