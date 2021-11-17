@@ -41,8 +41,8 @@ namespace Client
                 opt.AccessDeniedPath = "/user/AccessDenied";
             }).AddOpenIdConnect(options =>
             {
-                options.Authority = "https://localhost:6001";//_configuration["openid:authority"];
-                options.ClientId = "authcodeflowclient";//_configuration["openid:clientid"];
+                options.Authority = _configuration["openid:authority"];
+                options.ClientId = _configuration["openid:clientid"];
 
                 options.ClientSecret = "mysecret";
                 options.ResponseType = "code";
