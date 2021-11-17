@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IdentityServerHost.Quickstart.UI;
 using IdentityServerInMem;
+using IdentityService.Configuration;
 using Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -44,7 +45,7 @@ namespace IdentityService
             }).AddTestUsers(TestUsers.Users)
                 .AddInMemoryIdentityResources(Config.IdentityResources)
                 .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddInMemoryClients(Config.Clients);
+                .AddInMemoryClients(Clients.GetClients());
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
@@ -66,7 +67,7 @@ namespace IdentityService
             app.UseSerilogRequestLogging();
 
             app.UseHttpsRedirection();
-            app.UseSecurityHeaders();
+
 
             app.UseRequestLocalization(new RequestLocalizationOptions().SetDefaultCulture("se-SE"));
 
@@ -75,6 +76,8 @@ namespace IdentityService
             app.UseRouting();
 
             app.UseIdentityServer();
+
+            app.UseSecurityHeaders();
 
             app.UseAuthorization();
 
