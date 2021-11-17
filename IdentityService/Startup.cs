@@ -34,7 +34,7 @@ namespace IdentityService
         {
 
             if (_environment.EnvironmentName != "Offline")
-                services.AddDataProtectionWithSqlServer(_configuration);
+                services.AddDataProtectionWithSqlServerForIdentityService(_configuration);
 
             services.AddHsts(opts => { opts.IncludeSubDomains = true; opts.MaxAge = TimeSpan.FromSeconds(15768000); });
 
