@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServerHost.Quickstart.UI;
-using IdentityServerInMem;
 using IdentityService.Configuration;
+using IdentityService.Configuration.Clients;
+using IdentityService.Configuration.Resources;
 using Infrastructure;
 using Infrastructure.DataProtection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,18 +44,29 @@ namespace IdentityService
 
             var builder = services.AddIdentityServer(options =>
             {
-                options.Events.RaiseErrorEvents = true;
-                options.Events.RaiseFailureEvents = true;
-                options.Events.RaiseInformationEvents = true;
-                options.Events.RaiseSuccessEvents = true;
-
+                options.EmitStaticAudienceClaim = true;
             }).AddTestUsers(TestUsers.Users)
-                .AddInMemoryIdentityResources(Config.IdentityResources)
-                .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddInMemoryClients(Clients.GetClients());
+            .AddInMemoryIdentityResources(IdentityResourceData.Resources())
+            .AddInMemoryApiResources(ApiResourceData.Resources())
+            .AddInMemoryApiScopes(ApiScopeData.Resources())
+            .AddInMemoryClients(ClientData.GetClients())
+            .AddOperationalStore(options =>
+             {
+                 options.EnableTokenCleanup = true;
+                 //The number of records to remove at a time. Defaults to 100.
+                 options.TokenCleanupBatchSize = 100;
+                 options.TokenCleanupInterval = 3600; //Seconds
 
-            // not recommended for production - you need to store your key material somewhere secure
-            builder.AddDeveloperSigningCredential();
+                 options.ConfigureDbContext = options =>
+                 {
+                     options.UseSqlServer(_configuration["ConnectionString"]);
+                 };
+             });
+
+            if (_environment.EnvironmentName != "Offline")
+                builder.AddProductionSigningCredential(_configuration);
+            else
+                builder.AddDeveloperSigningCredential();
 
         }
 

@@ -1,10 +1,10 @@
-﻿using Duende.IdentityServer;
+﻿using System.Collections.Generic;
+using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
-using System.Collections.Generic;
 
-namespace IdentityService.Configuration
+namespace IdentityService.Configuration.Clients
 {
-    public class Clients
+    public class ClientData
     {
         public static IEnumerable<Client> GetClients()
         {
@@ -23,8 +23,8 @@ namespace IdentityService.Configuration
                     }
                 },
 
-				AllowOfflineAccess = true,
-		 
+                AllowOfflineAccess = true,
+
                 AllowedGrantTypes = GrantTypes.Code,
 
                 // When requesting both an id token and access token, should the user claims always
@@ -39,7 +39,8 @@ namespace IdentityService.Configuration
 
                 RedirectUris =
                 {
-                    "https://localhost:5001/signin-oidc"
+                    "https://localhost:5001/signin-oidc",
+                    "https://localhost:5002/signin-oidc"
                 },
 
                 PostLogoutRedirectUris =
@@ -58,6 +59,7 @@ namespace IdentityService.Configuration
                     IdentityServerConstants.StandardScopes.Email,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdentityServerConstants.StandardScopes.Phone,
+                    IdentityServerConstants.StandardScopes.OfflineAccess,
                 },
 
                 AllowedCorsOrigins =
@@ -98,7 +100,8 @@ namespace IdentityService.Configuration
 
                 RedirectUris =
                 {
-                    "https://student3-client.secure.nu/signin-oidc"
+                "https://localhost:5001/signin-oidc",
+                "https://localhost:5002/signin-oidc"
                 },
 
                 PostLogoutRedirectUris =
@@ -117,6 +120,7 @@ namespace IdentityService.Configuration
                     IdentityServerConstants.StandardScopes.Email,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdentityServerConstants.StandardScopes.Phone,
+                    IdentityServerConstants.StandardScopes.OfflineAccess,
                 },
 
                 AllowedCorsOrigins =
@@ -131,5 +135,6 @@ namespace IdentityService.Configuration
                 clientDev,clientProd
             };
         }
+
     }
 }
