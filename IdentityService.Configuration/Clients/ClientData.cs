@@ -100,8 +100,7 @@ namespace IdentityService.Configuration.Clients
 
                 RedirectUris =
                 {
-                "https://localhost:5001/signin-oidc",
-                "https://localhost:5002/signin-oidc"
+                    "https://student3-client.secure.nu/signin-oidc"
                 },
 
                 PostLogoutRedirectUris =
