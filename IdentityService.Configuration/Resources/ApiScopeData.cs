@@ -11,6 +11,7 @@ namespace IdentityService.Configuration.Resources
             {
                 new ApiScope("scope1"),
                 new ApiScope("scope2"),
+                new ApiScope("payment")
             };
         }
     }

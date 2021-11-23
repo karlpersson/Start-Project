@@ -12,6 +12,8 @@ namespace IdentityService.Configuration.Resources
                     new IdentityResources.OpenId(),
                     new IdentityResources.Profile(),
                     new IdentityResources.Email(),
+                    new IdentityResource(name: "employee",
+                                         userClaims: new string[] {"employmentid","employeetype","admin" })
             };
         }
     }

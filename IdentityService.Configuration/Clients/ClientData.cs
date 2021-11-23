@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 
@@ -8,85 +9,76 @@ namespace IdentityService.Configuration.Clients
     {
         public static IEnumerable<Client> GetClients()
         {
-            var clientDev = new Client
+            //Define the development client
+            var clientDev = ClientFactory(clientId: "authcodeflowclient_dev", client =>
             {
-                ClientId = "authcodeflowclient_dev",        //Unique ID of the client
-                ClientName = "My Client application",   //Client display name (used for logging and consent screen)
-                ClientUri = "https://www.tn-data.se",   //URI to further information about client (used on consent screen)
-                RequirePkce = true,
-
-                ClientSecrets = new List<Secret>
-                {
-                    new Secret
-                    {
-                        Value = "mysecret".Sha512()
-                    }
-                },
-
-                AllowOfflineAccess = true,
-
-                AllowedGrantTypes = GrantTypes.Code,
-
-                // When requesting both an id token and access token, should the user claims always
-                // be added to the id token instead of requiring the client to use the UserInfo endpoint.
-                // Defaults to false.
-                AlwaysIncludeUserClaimsInIdToken = false,
-
-                //Specifies whether this client is allowed to receive access tokens via the browser. 
-                //This is useful to harden flows that allow multiple response types 
-                //(e.g. by disallowing a hybrid flow client that is supposed to  use code id_token to add the token response type and thus leaking the token to the browser.
-                AllowAccessTokensViaBrowser = false,
-
-                RedirectUris =
+                client.ClientSecrets = new List<Secret> { new Secret("mysecret".Sha256()) };
+                client.AllowOfflineAccess = true;
+                client.RedirectUris = new List<string>()
                 {
                     "https://localhost:5001/signin-oidc",
-                    "https://localhost:5002/signin-oidc"
-                },
+                    "https://localhost:5002/signin-oidc",
+                    "https://localhost:8001/authcode/callback"
+                };
 
-                PostLogoutRedirectUris =
+                client.PostLogoutRedirectUris = new List<string>()
                 {
                     "https://localhost:5001/signout-callback-oidc"
-                },
-                FrontChannelLogoutUri = "https://localhost:5001/signout-oidc",
+                };
 
-                // By default a client has no access to any resources
-                // specify the allowed resources by adding the corresponding scopes names.
-                // If empty, the client can't access any scope
-                AllowedScopes =
-                {
-                    //Standard scopes
-                    IdentityServerConstants.StandardScopes.OpenId,
-                    IdentityServerConstants.StandardScopes.Email,
-                    IdentityServerConstants.StandardScopes.Profile,
-                    IdentityServerConstants.StandardScopes.Phone,
-                    IdentityServerConstants.StandardScopes.OfflineAccess,
-                },
+                client.FrontChannelLogoutUri = "https://localhost:5001/signout-oidc";
 
-                AllowedCorsOrigins =
+                client.AllowedCorsOrigins = new List<string>()
                 {
                     "https://localhost:5001"
-                }
-            };
+                };
+            });
 
-
-            var clientProd = new Client
+            //Define the production client
+            var clientProd = ClientFactory(clientId: "authcodeflowclient_prod", client =>
             {
-                ClientId = "authcodeflowclient_prod",        //Unique ID of the client
-                ClientName = "My Client application",   //Client display name (used for logging and consent screen)
-                ClientUri = "https://www.tn-data.se",   //URI to further information about client (used on consent screen)
-                RequirePkce = true,
-
-                ClientSecrets = new List<Secret>
+                client.ClientSecrets = new List<Secret> { new Secret("mysecret".Sha256()) };
+                client.AllowOfflineAccess = true;
+                client.RedirectUris = new List<string>()
                 {
-                    new Secret
-                    {
-                        Value = "mysecret".Sha512()
-                    }
-                },
+                    "https://student3-client.secure.nu/signin-oidc"
+                };
 
-                AllowOfflineAccess = true,
+                client.PostLogoutRedirectUris = new List<string>()
+                {
+                    "https://student3-client.secure.nu/signout-callback-oidc"
+                };
 
-                AllowedGrantTypes = GrantTypes.Code,
+                client.FrontChannelLogoutUri = "https://student3-client.secure.nu/signout-oidc";
+
+                client.AllowedCorsOrigins = new List<string>()
+                {
+                    "https://student3-client.secure.nu"
+                };
+            });
+
+            return new List<Client>()
+                {
+                    clientDev,
+                    clientProd
+                };
+        }
+
+
+        /// <summary>
+        /// Create an instance of a client and populate it with data that should be the same for all clients
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns></returns>
+        private static Client ClientFactory(string clientId, Action<Client> clientOptions)
+        {
+            var baseClient = new Client()
+            {
+                ClientId = clientId,
+                ClientName = "My Client application",
+                ClientUri = "https://www.edument.se",
+                RequirePkce = true,
+                AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
 
                 // When requesting both an id token and access token, should the user claims always
                 // be added to the id token instead of requiring the client to use the UserInfo endpoint.
@@ -98,42 +90,26 @@ namespace IdentityService.Configuration.Clients
                 //(e.g. by disallowing a hybrid flow client that is supposed to  use code id_token to add the token response type and thus leaking the token to the browser.
                 AllowAccessTokensViaBrowser = false,
 
-                RedirectUris =
-                {
-                    "https://student3-client.secure.nu/signin-oidc"
-                },
-
-                PostLogoutRedirectUris =
-                {
-                    "https://student3-client.secure.nu/signout-callback-oidc"
-                },
-                FrontChannelLogoutUri = "https://student3-client.secure.nu/signout-oidc",
-
-                // By default a client has no access to any resources
-                // specify the allowed resources by adding the corresponding scopes names.
-                // If empty, the client can't access any scope
                 AllowedScopes =
-                {
-                    //Standard scopes
-                    IdentityServerConstants.StandardScopes.OpenId,
-                    IdentityServerConstants.StandardScopes.Email,
-                    IdentityServerConstants.StandardScopes.Profile,
-                    IdentityServerConstants.StandardScopes.Phone,
-                    IdentityServerConstants.StandardScopes.OfflineAccess,
-                },
+                    {
+                        //Standard scopes
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Email,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Phone,
+                        IdentityServerConstants.StandardScopes.OfflineAccess,
+                        "employee",
+                        "payment"
+                    },
 
-                AllowedCorsOrigins =
-                {
-                    "https://student3-client.secure.nu"
-                }
+                AlwaysSendClientClaims = true,
+                ClientClaimsPrefix = "client_",
             };
 
+            clientOptions(baseClient);
 
-            return new List<Client>()
-            {
-                clientDev,clientProd
-            };
+            return baseClient;
         }
-
     }
+
 }

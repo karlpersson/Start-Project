@@ -9,6 +9,18 @@ namespace IdentityService.Configuration.Resources
         {
             return new ApiResource[]
             {
+                new ApiResource()
+                {
+                    Name = "paymentapi",
+                    ApiSecrets = new List<Secret>() { new Secret("myapisecret".Sha256()) },
+
+                    Scopes = new List<string> { "payment"},
+
+                    UserClaims = new List<string>
+                    {
+                        "creditlimit","paymentaccess","admin"
+                    }
+                }
 
             };
         }
