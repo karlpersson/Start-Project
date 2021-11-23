@@ -2,15 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServerHost.Models;
 using IdentityServerHost.Quickstart.UI;
 using IdentityService.Configuration;
 using IdentityService.Configuration.Clients;
 using IdentityService.Configuration.Resources;
+using IdentityService.Data;
 using Infrastructure;
 using Infrastructure.DataProtection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +38,15 @@ namespace IdentityService
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlServer(_configuration["ConnectionString"]);
+            });
+
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
             if (_environment.EnvironmentName != "Offline")
                 services.AddDataProtectionWithSqlServerForIdentityService(_configuration);
 
@@ -45,7 +57,7 @@ namespace IdentityService
             var builder = services.AddIdentityServer(options =>
             {
                 options.EmitStaticAudienceClaim = true;
-            }).AddTestUsers(TestUsers.Users)
+            })
             .AddInMemoryIdentityResources(IdentityResourceData.Resources())
             .AddInMemoryApiResources(ApiResourceData.Resources())
             .AddInMemoryApiScopes(ApiScopeData.Resources())
@@ -61,12 +73,14 @@ namespace IdentityService
                  {
                      options.UseSqlServer(_configuration["ConnectionString"]);
                  };
-             });
+             }).AddAspNetIdentity<ApplicationUser>();
 
             if (_environment.EnvironmentName != "Offline")
                 builder.AddProductionSigningCredential(_configuration);
             else
                 builder.AddDeveloperSigningCredential();
+
+
 
         }
 
