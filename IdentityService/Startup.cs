@@ -10,6 +10,7 @@ using IdentityService.Configuration.Resources;
 using IdentityService.Data;
 using Infrastructure;
 using Infrastructure.DataProtection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,9 @@ namespace IdentityService
             services.AddHsts(opts => { opts.IncludeSubDomains = true; opts.MaxAge = TimeSpan.FromSeconds(15768000); });
 
             services.AddControllersWithViews();
+
+
+
 
             var builder = services.AddIdentityServer(options =>
             {

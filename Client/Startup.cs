@@ -32,6 +32,15 @@ namespace Client
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<SerilogHttpMessageHandler>();
+
+            services.AddHttpClient("paymentapi", client =>
+            {
+                client.BaseAddress = new Uri(_configuration["paymentApiUrl"]);
+                client.Timeout = TimeSpan.FromSeconds(5);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            }).AddHttpMessageHandler<SerilogHttpMessageHandler>();
+
             if (_environment.EnvironmentName != "Offline")
                 services.AddDataProtectionWithSqlServerForClient(_configuration);
 
@@ -57,6 +66,7 @@ namespace Client
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
                 options.Scope.Add("offline_access");
+                options.Scope.Add("payment");
 
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SaveTokens = true;
@@ -68,6 +78,9 @@ namespace Client
                     NameClaimType = JwtClaimTypes.Name,
                     RoleClaimType = JwtClaimTypes.Role
                 };
+                options.BackchannelHttpHandler = new BackChannelListener();
+                options.BackchannelTimeout = TimeSpan.FromSeconds(5);
+
             });
 
 

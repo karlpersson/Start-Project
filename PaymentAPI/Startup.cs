@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure;
 using Infrastructure.DataProtection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
+using PaymentAPI.Middleware;
 using Serilog;
 
 namespace PaymentAPI
@@ -36,6 +39,17 @@ namespace PaymentAPI
             services.AddControllersWithViews();
             services.AddHsts(opts => { opts.IncludeSubDomains = true; opts.MaxAge = TimeSpan.FromSeconds(15768000); });
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).
+                 AddJwtBearer(opt => { opt.Audience = "paymentapi"; opt.Authority = _configuration["openid:authority"]; opt.MapInboundClaims = false; opt.TokenValidationParameters.RoleClaimType = "roles"; opt.TokenValidationParameters.NameClaimType = "name"; opt.IncludeErrorDetails = true; opt.BackchannelHttpHandler = new BackChannelListener(); opt.BackchannelTimeout = TimeSpan.FromSeconds(5); });
+
+            
+            
+            //Add the listener to the ETW system
+
+            //var listener = new IdentityModelEventListener();
+            //IdentityModelEventSource.Logger.LogLevel =
+            //    System.Diagnostics.Tracing.EventLevel.Verbose;
+            //IdentityModelEventSource.ShowPII = true;
 
         }
 
@@ -54,6 +68,12 @@ namespace PaymentAPI
 
             app.UseSerilogRequestLogging();
 
+            //Add this string to the PaymentAPI ConfigureServices method:
+            //Make sure its placed before app.UseAuthentication();
+            //Wait for IdentityServer to startup
+            app.UseWaitForIdentityServer(new WaitForIdentityServerOptions()
+            { Authority = _configuration["openid:authority"] });
+
             app.UseHttpsRedirection();
 
             app.UseSecurityHeaders();
@@ -62,6 +82,7 @@ namespace PaymentAPI
 
             app.UseRequestLocalization(new RequestLocalizationOptions().SetDefaultCulture("sv-SE"));
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -71,6 +92,8 @@ namespace PaymentAPI
                     pattern: "{controller=Home}/{action=Index}/{id?}");
 
             });
+          
+
         }
     }
 }
