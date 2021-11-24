@@ -18,7 +18,7 @@ namespace IdentityService.Configuration.Resources
 
                     UserClaims = new List<string>
                     {
-                        "creditlimit","paymentaccess","admin"
+                        "creditlimit","paymentaccess","admin","name"
                     }
                 }
 

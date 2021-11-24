@@ -40,7 +40,7 @@ namespace PaymentAPI
             services.AddHsts(opts => { opts.IncludeSubDomains = true; opts.MaxAge = TimeSpan.FromSeconds(15768000); });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).
-                 AddJwtBearer(opt => { opt.Audience = "paymentapi"; opt.Authority = _configuration["openid:authority"]; opt.MapInboundClaims = false; opt.TokenValidationParameters.RoleClaimType = "roles"; opt.TokenValidationParameters.NameClaimType = "name"; opt.IncludeErrorDetails = true; opt.BackchannelHttpHandler = new BackChannelListener(); opt.BackchannelTimeout = TimeSpan.FromSeconds(5); });
+                 AddJwtBearer(opt => { opt.Audience = "paymentapi"; opt.Authority = _configuration["openid:authority"]; opt.MapInboundClaims = false; opt.TokenValidationParameters.RoleClaimType = "roles"; opt.TokenValidationParameters.NameClaimType = "name"; opt.IncludeErrorDetails = true; opt.BackchannelHttpHandler = new BackChannelListener(); opt.BackchannelTimeout = TimeSpan.FromSeconds(5); opt.TokenValidationParameters.ClockSkew = TimeSpan.FromSeconds(0); });
 
             
             

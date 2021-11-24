@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using IdentityModel;
 using Infrastructure;
 using Infrastructure.DataProtection;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -14,7 +15,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
 using Serilog;
+using SessionStore;
 
 namespace Client
 {
@@ -32,14 +35,36 @@ namespace Client
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // adds user and client access token management
+            services.AddAccessTokenManagement(options =>
+            {
+                options.User.RefreshBeforeExpiration = TimeSpan.FromSeconds(5);
+            })
+            .ConfigureBackchannelHttpClient()
+                .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(new[]
+                {
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(3)
+                }));
+
+
             services.AddTransient<SerilogHttpMessageHandler>();
 
-            services.AddHttpClient("paymentapi", client =>
+            //services.AddHttpClient("paymentapi", client =>
+            //{
+            //    client.BaseAddress = new Uri(_configuration["paymentApiUrl"]);
+            //    client.Timeout = TimeSpan.FromSeconds(5);
+            //    client.DefaultRequestHeaders.Add("Accept", "application/json");
+            //}).AddHttpMessageHandler<SerilogHttpMessageHandler>();
+
+            // registers HTTP client that uses the managed user access token
+            services.AddUserAccessTokenHttpClient("paymentapi", configureClient: client =>
             {
                 client.BaseAddress = new Uri(_configuration["paymentApiUrl"]);
                 client.Timeout = TimeSpan.FromSeconds(5);
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
-            }).AddHttpMessageHandler<SerilogHttpMessageHandler>();
+            });
 
             if (_environment.EnvironmentName != "Offline")
                 services.AddDataProtectionWithSqlServerForClient(_configuration);
@@ -50,8 +75,15 @@ namespace Client
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             }).AddCookie(opt =>
             {
+                opt.SessionStore = new MySessionStore();
                 opt.LogoutPath = "/user/Logout";
                 opt.AccessDeniedPath = "/user/AccessDenied";
+
+                opt.Events.OnSigningOut = async e =>
+                {
+                    // revoke refresh token on sign-out
+                    await e.HttpContext.RevokeUserRefreshTokenAsync();
+                };
             }).AddOpenIdConnect(options =>
             {
                 options.Authority = _configuration["openid:authority"];
